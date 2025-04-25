@@ -80,7 +80,7 @@ int removeOneOrd(LInt *l, int a) {
 
 void merge (LInt *l, LInt a, LInt b){
     while(a !=NULL || b!=NULL){
-        if (a->valor < b-> valor || b == NULL){ //a!=NULL && b !=NULL -> se n colocarmos da segmenation fault 
+        if (a!=NULL && b !=NULL && a->valor < b-> valor || b == NULL){  
             *l = a;
             a = a->prox;
         }
@@ -107,4 +107,106 @@ void splitQS (LInt l, int x, LInt *mx, LInt *Mx){
     }
     *Mx = NULL;
     *mx = NULL;
+}
+
+int calculalength(LInt l) {
+    int count = 0;
+    while (l != NULL) {
+        count++;
+        l = l->prox;
+    }
+    return count;
+}
+
+
+LInt parteAmeio (LInt *l){
+    if (*l == NULL || (*l)->prox == NULL) return NULL;
+    LInt ant = NULL;
+    LInt agr = *l;
+    int length = calculalength(*l);
+    int atual = 0;
+    int meio = length / 2;
+    while (atual < meio && agr!=NULL){
+        atual++;
+        ant = agr;
+        agr = agr -> prox;
+    }
+    ant -> prox = NULL;
+    LInt res = *l;
+    *l = agr;
+    return res;
+}
+
+int removeAll (LInt *l, int x){
+    if (*l == NULL) return 0;
+    LInt ant = NULL;
+    LInt atual = *l;
+    int count = 0;
+    while (atual != NULL){
+        if (atual -> valor == x){
+            if (ant == NULL){
+                *l = atual -> prox;
+            }
+            else{
+            ant->prox = atual ->prox;
+        }
+        count++;
+        atual = atual -> prox;
+    }
+        else{
+            ant = atual;
+            atual = atual -> prox;
+        }
+    }
+    
+    return count;
+}
+// so funciona para 2 testes
+int removeDups (LInt *l){
+    int count = 0;
+    LInt ant = NULL;
+    LInt atual = *l;
+    while(atual!=NULL){
+        if(ant == NULL){
+            ant = atual;
+            atual = atual->prox;
+        }
+        else if(atual->valor == ant -> valor){
+            ant -> prox = atual ->prox;
+            atual = atual ->prox;
+            count ++;
+        }
+        else{
+            ant = atual;
+            atual = atual ->prox;
+        }
+    }
+    return count;
+}
+
+int removeDups(LInt *l) {
+    int count = 0;
+    LInt atual = *l;
+    LInt ant = NULL;
+    LInt seg = NULL;
+
+    while (atual != NULL) {
+        ant = atual;  
+        seg = atual->prox;  
+
+        while (seg != NULL) {
+            if (seg->valor == atual->valor) {
+                count++;  
+                ant->prox = seg->prox;  
+                seg = ant->prox;  
+            } else {
+                ant = seg;
+                seg = seg->prox;
+            }
+        }
+
+        atual = atual->prox;  
+    }
+
+    return count;
 }
