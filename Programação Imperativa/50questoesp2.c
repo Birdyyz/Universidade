@@ -210,3 +210,106 @@ int removeDups(LInt *l) {
 
     return count;
 }
+
+int removeMaiorL(LInt *l) {
+
+    LInt atual = *l;
+    LInt ant = NULL;
+    LInt maior = *l;
+    LInt antmaior = NULL;
+
+    while (atual != NULL) {
+        if (atual->valor > maior->valor) {
+            maior = atual;
+            antmaior = ant;
+        }
+        ant = atual;
+        atual = atual->prox;
+    }
+    if (antmaior == NULL) {
+        *l = maior->prox;
+    } else {
+        antmaior->prox = maior->prox;
+    }
+    int valorMaior = maior->valor;
+    return valorMaior;
+}
+
+
+void init (LInt *l){
+    LInt atual = *l;
+    LInt ant = NULL;
+    while(atual -> prox != NULL){
+        ant = atual;
+        atual = atual -> prox;
+    }
+    if(ant == NULL){
+        free(atual);
+        *l = NULL;
+    }
+    else{
+        free(atual);
+        ant ->prox = NULL;
+    }
+}
+
+void appendL (LInt *l, int x){
+    LInt add = malloc(sizeof(struct lligada));
+    add -> valor = x;
+    add -> prox = NULL;
+    LInt atual = *l;
+    if (*l == NULL){
+        *l = add;
+    }else{
+    while(atual ->prox !=NULL){
+        atual = atual -> prox;
+    }
+    atual -> prox = add;
+}
+}
+
+void concatL (LInt *a, LInt b){
+    if (*a == NULL) {
+        *a = b;
+    }
+    else{
+    LInt atual = *a;
+    while (atual->prox != NULL) {
+        atual = atual->prox;
+    }
+
+    atual->prox = b;
+    }
+}
+
+LInt cloneL (LInt l) {
+    if (l == NULL){
+         return NULL; 
+    }
+    LInt novo = malloc(sizeof(struct lligada));
+    novo->valor = l->valor;
+    LInt head = novo; 
+    l = l->prox;
+
+    while (l != NULL) {
+        novo->prox = malloc(sizeof(struct lligada));
+        novo = novo->prox;
+        novo->valor = l->valor;
+        l = l->prox;
+    }
+    novo->prox = NULL;
+
+    return head;
+}
+
+LInt cloneRev (LInt l) {
+    LInt head = NULL;
+    while (l != NULL) {
+        LInt novo = malloc(sizeof(struct lligada));
+        novo->valor = l->valor;
+        novo->prox = head; 
+        head = novo;       
+        l = l->prox;
+    }
+    return head;
+}
