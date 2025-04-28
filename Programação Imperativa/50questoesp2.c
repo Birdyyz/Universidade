@@ -313,3 +313,42 @@ LInt cloneRev (LInt l) {
     }
     return head;
 }
+
+int maximo (LInt l){
+    int max = 0;
+    while (l !=NULL){
+        if (l -> valor > max){
+            max = l-> valor;
+        }
+        l = l->prox;
+    }
+    return max;
+}
+
+int length (LInt l){
+    int count = 0;
+    while(l != NULL){
+        count++;
+        l=l->prox;
+    }
+    return count;
+}
+
+int take (int n, LInt *l){
+    LInt atual = *l;
+    int tamanho = length(*l);
+    if (tamanho <= n){
+        return tamanho;
+    }
+    int i;
+    for(i = 0; i < n; i++){
+        atual = atual -> prox;
+    }
+    while (atual != NULL) {
+        LInt temp = atual->prox;
+        free(atual);
+        atual = temp;
+}
+
+    return n;
+}
