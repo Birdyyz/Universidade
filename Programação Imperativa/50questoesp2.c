@@ -352,3 +352,146 @@ int take (int n, LInt *l){
 
     return n;
 }
+
+int drop (int n, LInt *l){
+    int count = 0;
+    LInt atual = *l;
+    if(l == NULL || n == 0){
+        return 0;
+    }
+    while(count != n && atual != NULL){
+        count++;
+        LInt temp = atual;
+        atual = atual -> prox;
+        free(temp);
+    }
+    *l = atual;
+    return count;
+}
+
+LInt NForward (LInt l, int N){
+    int i;
+    for(i = 0; i!= N; i++){
+        l = l->prox;
+    }
+    return l;
+}
+
+int listToArray (LInt l, int v[], int N){
+    int i;
+    for(i = 0; i < N ; i++){
+        if(l != NULL){
+            v[i] = l->valor;
+            l = l->prox;
+        }
+        else{return i;}
+    }
+    return i;
+}
+
+LInt arrayToList (int v[], int N){
+    if(N== 0){
+        return NULL;
+    }
+    int i;
+    LInt l = malloc(sizeof(struct lligada));
+    l -> valor = v[0];
+    l -> prox = NULL;
+    LInt head = l;
+
+    for(i = 1; i < N; i++){
+        LInt atual = malloc(sizeof(struct lligada));
+        atual -> valor = v[i];
+        atual -> prox = NULL; 
+        l -> prox = atual;
+        l = l-> prox;
+    }
+    return head;
+}
+
+LInt somasAcL (LInt l) {
+    if (l == NULL){
+        return NULL;
+    }  
+    int soma = 0;
+    soma += l -> valor;
+    LInt novo = malloc(sizeof(struct lligada));
+    novo -> valor = soma;
+    novo -> prox = NULL;
+    l = l->prox;
+    LInt head = novo;
+    LInt atual = novo;
+    while (l!=NULL){
+        soma += l-> valor;
+        LInt novo = malloc(sizeof(struct lligada));
+        novo -> valor = soma;
+        novo -> prox = NULL;
+        atual -> prox = novo;
+        atual = novo;
+        l = l->prox;
+    }
+    return head;
+}
+
+void remreps (LInt l){
+    LInt atual = l;
+    while ( atual != NULL && atual -> prox != NULL){
+        if(atual-> valor == atual -> prox -> valor){
+            LInt temp = atual->prox;
+            atual -> prox = temp -> prox;
+            free(temp);
+        }
+        else{
+            atual = atual-> prox;
+        }
+    }
+}
+
+LInt rotateL (LInt l){
+    if(l == NULL || l -> prox == NULL){
+        return l;
+    }
+    LInt first = l;
+    LInt atual = l;
+    while (atual -> prox != NULL){
+        atual = atual -> prox;
+    }
+    atual -> prox = first;
+    l = l->prox;
+    first -> prox = NULL;
+    return l;
+}
+
+LInt parte (LInt l) {
+    if (l == NULL || l->prox == NULL){
+        return NULL;
+    }
+    LInt nova = NULL, tail = NULL, atual = l, ant = NULL;
+
+    int i = 0;
+    while (atual != NULL) {
+        if (i % 2 != 0) {
+            // Remove atual da lista l
+            LInt temp = atual;
+            if (ant != NULL){
+                ant->prox = atual->prox;
+            }
+            atual = atual->prox;
+
+            // Adiciona temp à lista nova
+            temp->prox = NULL;
+            if (nova == NULL) {
+                nova = temp;
+                tail = temp;
+            } else {
+                tail->prox = temp;
+                tail = temp;
+            }
+        } else {
+            ant = atual;
+            atual = atual->prox;
+        }
+        i++;
+    }
+    return nova;
+}
