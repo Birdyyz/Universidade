@@ -495,3 +495,62 @@ LInt parte (LInt l) {
     }
     return nova;
 }
+
+typedef struct nodo {
+    int valor;
+    struct nodo *esq, *dir;
+    } *ABin;
+
+int altura (ABin a){
+    int r = 0;
+    if (a == NULL){
+        return 0;
+    }
+    else{
+        int alturaesq = altura(a->esq);
+        int alturadir = altura(a->dir);
+        if (alturaesq > alturadir){
+            r = 1+ alturaesq;
+        }
+        else{
+            r = 1 + alturadir;
+        }
+    }
+    return r;
+}
+
+ABin cloneAB (ABin a){
+    if(a == NULL){
+        return NULL;
+    }
+    ABin aux = malloc(sizeof(struct nodo));
+    aux -> valor = a -> valor;
+    aux -> esq = cloneAB(a->esq);
+    aux -> dir = cloneAB(a->dir);
+    return aux;
+}
+
+void mirror (ABin *a) {
+    if (*a == NULL) return; 
+
+    ABin temp = (*a)->esq;
+    (*a)->esq = (*a)->dir;
+    (*a)->dir = temp;
+
+    mirror(&((*a)->esq));
+    mirror(&((*a)->dir));
+}
+
+void inorder(ABin a, LInt *l) {
+    if (a == NULL) return;
+
+    inorder(a->esq, l);
+
+    while (*l) l = &((*l)->prox);
+
+    *l = malloc(sizeof(struct lligada));
+    (*l)->valor = a->valor;
+    (*l)->prox = NULL;
+
+    inorder(a->dir, l);
+}
