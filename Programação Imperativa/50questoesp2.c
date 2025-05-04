@@ -636,3 +636,39 @@ int pruneAB (ABin *a, int l) {
     }
     return r;
 }
+
+int iguaisAB (ABin a, ABin b) {
+    if (a == NULL && b == NULL){
+        return 1;
+    }
+    if(a == NULL || b == NULL){
+        return 0;
+    }
+    if(a -> valor != b-> valor){
+        return 0;
+    }
+    return iguaisAB(a->esq,b->esq) && iguaisAB(a->dir,b->dir);
+}
+
+LInt nivelL(ABin a, int n) {
+    if (a == NULL) return NULL;
+
+    if (n == 1) {
+        LInt novo = malloc(sizeof(struct lligada));
+        novo->valor = a->valor;
+        novo->prox = NULL;
+        return novo;
+    } else {
+        LInt esq = nivelL(a->esq, n - 1);
+        LInt dir = nivelL(a->dir, n - 1);
+
+        if (esq == NULL) return dir;
+
+        LInt temp = esq;
+        while (temp->prox != NULL)
+            temp = temp->prox;
+        temp->prox = dir;
+
+        return esq;
+    }
+}
