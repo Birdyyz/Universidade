@@ -554,3 +554,85 @@ void inorder(ABin a, LInt *l) {
 
     inorder(a->dir, l);
 }
+
+void preorder (ABin a, LInt * l) {
+    if(a == NULL)return;
+
+    * l = malloc (sizeof(struct lligada));
+    (*l)-> valor = a -> valor;
+    (*l)-> prox = NULL;
+    preorder(a->esq,&((*l)->prox));
+
+    while (*l) l = &((*l)->prox);
+    preorder(a->dir,l);
+}
+// nao funciona
+void posorder (ABin a, LInt * l) {
+    if(a == NULL)return;
+    posorder(a->esq, &((*l)->prox));
+    
+    while (*l) l = &((*l)->prox);
+
+    posorder(a->dir,&((*l)->prox));
+
+    while (*l) l = &((*l)->prox);
+
+    *l = malloc(sizeof(struct lligada));
+    (*l)-> valor = a->valor;
+    (*l) -> prox = NULL;
+}
+
+int depth(ABin a, int x) {
+    int r = -1;
+    if (a == NULL) {
+        return -1; 
+    }
+    if (a->valor == x) {
+        return 1; 
+    }
+    int esq = depth(a->esq, x);
+    int dir = depth(a->dir, x);
+
+    if (esq == -1 && dir == -1) {
+        r= -1;
+    }
+    else if (esq == -1){
+        r= dir+1;
+    }
+    else if(dir == -1){
+        r= esq+1;
+    }
+    else if (dir < esq){
+        r= 1+dir;
+    }
+    else{
+        r= 1+esq;
+    }
+    return r;
+}
+
+int freeAB (ABin a) {
+    int count = 0;
+    if (a == NULL){
+        return 0;
+    }
+    count ++;
+    count += freeAB(a->esq);
+    count += freeAB(a->dir);
+    free(a);
+    return count;
+}
+
+int pruneAB (ABin *a, int l) {
+    if(*a == NULL)return 0;
+    int r = 0;
+    if (l == 0) {
+        ABin temp = *a;
+        *a = NULL;
+        r += freeAB(temp);
+    } else {
+        r += pruneAB(&((*a)->dir), l - 1);
+        r += pruneAB(&((*a)->esq), l - 1);
+    }
+    return r;
+}
