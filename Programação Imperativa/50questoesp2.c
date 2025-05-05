@@ -672,3 +672,133 @@ LInt nivelL(ABin a, int n) {
         return esq;
     }
 }
+
+int nivelV (ABin a, int n, int v[]) {
+    int count = 0;
+    if (a == NULL || n == 0){
+        return 0;
+    }
+    if ( n == 1){
+        v[0] = a->valor;
+        count++;
+    }
+    else{
+        int esq = nivelV(a->esq, n - 1, v);
+        int dir = nivelV(a->dir, n - 1, v + esq);
+        count += esq + dir;
+    }
+    return count;
+}
+// esq -> raiz -> dir
+int dumpAbin (ABin a, int v[], int N) {
+    if(a == NULL || N == 0){
+        return 0;
+    }
+    int esq = dumpAbin(a->esq,v,N);
+    if(esq < N){
+        v[esq++] = a-> valor;
+    }else{
+        return esq;
+    }
+    esq += dumpAbin(a->dir, v + esq, N - esq);
+    return esq;
+}
+
+ABin somasAcA (ABin a) {
+    if (a == NULL) return NULL;
+
+    ABin aux = malloc(sizeof(struct nodo));
+    aux->esq = somasAcA(a->esq);
+    aux->dir = somasAcA(a->dir);
+
+    aux->valor = a->valor;
+    if (aux->esq != NULL) aux->valor += aux->esq->valor;
+    if (aux->dir != NULL) aux->valor += aux->dir->valor;
+
+    return aux;
+}
+
+int contaFolhas (ABin a) {
+    if(a == NULL){
+        return 0;
+    }
+    if(a -> esq == NULL && a-> dir == NULL){
+        return 1;
+    }
+    int esq = contaFolhas(a->esq);
+    int dir = contaFolhas(a->dir);
+    return esq + dir;;
+}
+
+ABin cloneMirror (ABin a) {
+    if(a == NULL){
+        return NULL;
+    }
+    ABin aux = malloc(sizeof(struct nodo));
+    aux -> valor = a ->valor;
+    aux -> esq = cloneMirror(a->dir);
+    aux -> dir = cloneMirror(a->esq);
+    return aux;
+}
+
+int addOrd (ABin *a, int x) {
+    if (*a == NULL) {
+        *a = malloc(sizeof(struct nodo)); 
+        if (*a == NULL){
+             return -1; 
+             }
+        (*a)->valor = x;
+        (*a)->esq = NULL;
+        (*a)->dir = NULL;
+        return 0;
+    }
+    else if ((*a)->valor == x) {
+        return 1; 
+    }
+    else if ((*a)->valor > x) {
+        return addOrd(&((*a)->esq), x);  
+    }
+    else {
+        return addOrd(&((*a)->dir), x);  
+    }
+}
+
+int lookupAB (ABin a, int x) {
+    while (a != NULL){
+        if(a -> valor == x){
+            return 1;
+        }
+        if (a -> valor > x){
+            a = a-> esq;
+        }
+        else{
+            a = a->dir;
+        }
+    }
+    return 0;
+}
+
+int depthOrd (ABin a, int x) {
+    int count = 1;
+    while(a!=NULL){
+        if(a-> valor == x){
+            return count;
+        }
+        else if (a->valor > x){
+            a = a-> esq;
+            count++;
+        }
+        else{
+            a = a-> dir;
+            count++; 
+        }
+    }
+    return -1;
+}
+
+int maiorAB (ABin a) {
+    while(a->dir!=NULL){
+        a = a-> dir;
+    }
+    return a->valor;
+}
