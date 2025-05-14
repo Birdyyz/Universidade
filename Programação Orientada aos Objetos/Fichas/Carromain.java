@@ -1,5 +1,3 @@
-import Fichas.Fichas.Carro;
-
 public class Carromain {
 //https://www.abt-sportsline.com/abt-limited-editions/abt-rs6-le
 public static void main(String[] args) {

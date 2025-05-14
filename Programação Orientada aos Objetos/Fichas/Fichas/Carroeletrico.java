@@ -1,5 +1,3 @@
-import Fichas.Fichas.Carro;
-
 public class Carroeletrico extends Carro{
     private double dimensaobateria;
     private double consumokwh100;

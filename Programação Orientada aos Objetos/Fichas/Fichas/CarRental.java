@@ -4,8 +4,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import Fichas.Fichas.Carro;
-
 
 public class CarRental {
     private Map<String, Carro> carros;

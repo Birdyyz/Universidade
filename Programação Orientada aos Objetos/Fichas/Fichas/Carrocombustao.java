@@ -1,5 +1,3 @@
-import Fichas.Fichas.Carro;
-
 public class Carrocombustao extends Carro{
     private double tamanhodeposito;
     private double consumolitros100km;

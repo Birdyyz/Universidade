@@ -1,4 +1,3 @@
-package Fichas.Fichas;
 public class Carro {
     private String matricula;
     private String marca;
