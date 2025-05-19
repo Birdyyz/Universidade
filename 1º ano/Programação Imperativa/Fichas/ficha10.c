@@ -8,58 +8,86 @@ struct nodo *esq, *dir;
 // casos-> n ter arvore
 // ter um filho (direito)
 // ser uma folha
-ABin removeMenor (ABin *a){
-    if(*a == NULL){
-        return *a;
+void removeMenor(ABin *a) {
+    if (*a == NULL) return;
+
+    while ((*a)->esq != NULL) {
+        a = &(*a)->esq;
     }
-    // ir para o filho menor 
-    while ((*a) -> esq != NULL){
-        a = &(*a) -> esq;
-    }
-    // como agora encontramos o menor vamos apagá-lo da existencia
-    // caso de nao ter filho direito
-    if(&(*a)->dir == NULL){
-        free(*a);
-        a = NULL;
-        } 
-    else{
-    // caso de ter filho direito
-    struct nodo *temp = *a;
-    *a = (*a)->dir;
-    free(temp);
-    }
-    return *a;
+
+    ABin temp = *a;
+    *a = (*a)->dir; 
+    free(temp);     
 }
 
-void removeRaiz (ABin *a){
-    if(*a == NULL){
-        return;
-    }
-    // procurar o menor elemento da arvore direita
+
+void removeRaiz(ABin *a) {
+    if (*a == NULL) return;
+
     ABin temp;
-    if((*a)->esq == NULL){
+
+    if ((*a)->esq == NULL) {
         temp = *a;
-        *a = (*a) -> dir;
+        *a = (*a)->dir;
         free(temp);
     }
-    else if((*a)-> dir == NULL){
+    else if ((*a)->dir == NULL) {
         temp = *a;
-        *a = (*a) -> esq;
+        *a = (*a)->esq;
         free(temp);
     }
-    else{
-        ABin *min = &(*a)-> dir;
-        while ((*a)-> esq != NULL){
-            a = &(*a) -> esq;
+    else {
+        ABin *min = &(*a)->dir;
+        while ((*min)->esq != NULL) {
+            min = &(*min)->esq;
         }
-        (*a) -> valor = (*min) -> valor;
-        ABin deletar = *min;
-        if((*min)-> dir != NULL){
-            *min = (*min)->dir;
-        }
-        else{
-            *min = NULL;
-        }
-        free(deletar);
+
+        (*a)->valor = (*min)->valor;
+
+        temp = *min;
+        *min = (*min)->dir;  
+        free(temp);
     }
+}
+
+int removeElem (ABin *a, int x){
+    if(*a == NULL){
+        return 1;
+    }
+
+    if ((*a)->valor > x){
+        return removeElem(&(*a)->esq,x);
+    }
+    if((*a)->valor < x){
+        return removeElem(&(*a)->dir,x);
+    }
+    if((*a)->valor == x){
+        // é uma folha
+        if((*a)->dir == NULL && (*a)-> esq == NULL){
+            free(*a);
+            *a = NULL;
+            return 0;
+        }
+        if((*a)->dir == NULL){
+            ABin temp = ((*a)->esq);
+            free(*a);
+            *a = temp;
+            return 0;
+        }
+        else if((*a)->esq == NULL){
+            ABin temp = (*a)->dir;
+            free(*a);
+            *a = temp;
+            return 0; 
+        }else{
+            ABin temp = (*a)->dir;
+            while(temp->esq != NULL){
+                temp = temp ->esq;
+            }
+            (*a) -> valor = temp->valor;
+            removeElem(&(*a)->dir, temp->valor);
+            return 0;
+        }
+    }
+    return 1;
 }
