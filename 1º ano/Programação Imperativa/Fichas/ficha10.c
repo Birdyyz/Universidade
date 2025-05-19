@@ -91,3 +91,90 @@ int removeElem (ABin *a, int x){
     }
     return 1;
 }
+void rodaEsquerda (ABin *a){
+ABin b = (*a)->dir;
+(*a)->dir = b->esq;
+b->esq = (*a);
+*a = b;
+}
+void rodaDireita (ABin *a){
+ABin b = (*a)->esq;
+(*a)->esq = b->dir;
+b->dir = *a;
+*a = b;
+}
+
+void promoveMenor (ABin *a){
+    while((*a)->esq != NULL){
+        rodaDireita(a);
+    }
+}
+
+void promoveMaior (ABin *a){
+    while((*a)->dir != NULL){
+        rodaEsquerda(a);
+    }
+}
+
+void removeMenorv2(ABin *a) {
+     if (*a == NULL) return;
+    promoveMenor(a);
+    removeRaiz(a);
+}
+
+ABin removeMenorAlt (ABin *a){
+    if (*a == NULL) return NULL;
+    promoveMenor(a);
+    ABin temp = malloc(sizeof(struct nodo));
+    temp -> dir = NULL;
+    temp -> esq = NULL;
+    temp -> valor = (*a) -> valor;
+    removeRaiz(a);
+    return temp;
+}
+
+int constroiEspinhaAux(ABin *a, ABin *ult) {
+    if (*a == NULL) {
+        *ult = NULL;
+        return 0;
+    }
+
+    int nosEsq = constroiEspinhaAux(&(*a)->esq, ult);
+
+    if (nosEsq > 0) {
+        (*ult)->dir = (*a)->dir;  
+        (*a)->dir = (*a)->esq;    
+        (*a)->esq = NULL;         
+    }
+
+    int nosDir = constroiEspinhaAux(&(*a)->dir, ult);
+
+    if (nosDir == 0) {
+        *ult = *a;
+    }
+
+    return 1 + nosEsq + nosDir;
+}
+
+int constroiEspinha(ABin *a) {
+    ABin ult;
+    return constroiEspinhaAux(a, &ult);
+}
+
+ABin equilibraEspinha(ABin *a, int n) {
+    if (n == 0) return *a; 
+
+    ABin raiz = *a;
+
+    raiz->esq = equilibraEspinha(&raiz->dir, n / 2);
+
+    *a = raiz->dir;
+
+    raiz->dir = equilibraEspinha(a, n - n / 2 - 1);
+
+    return raiz;  
+}
+void equilibra (ABin *a){
+    int r = constroiEspinha(a);
+    equilibraEspinha(a,r);
+}
