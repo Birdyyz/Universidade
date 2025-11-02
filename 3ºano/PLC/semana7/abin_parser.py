@@ -20,7 +20,13 @@ def ACONT():
         return 
     else:
         raise ValueError("Invalid syntax.")
-    
+# INT PA PF
+# P1: ABIN -> PA ACONT
+# P2: ACONT -> ε
+#            | INT ABIN ABIN PF
+#First(ACONT -> INT ABIN ABIN) = {INT}
+#First(ACONT -> ε) = {PF}
+
 def ABIN():
     global prox_symb
     if prox_symb.type == "PA":
