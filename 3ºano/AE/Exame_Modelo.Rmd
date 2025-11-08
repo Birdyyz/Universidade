@@ -1,0 +1,400 @@
+---
+title: "Exame Modelo — EDA, Regressão Linear e Regularização (2 horas)"
+author: "Nome do/a aluno/a: __________________"
+date: "`r format(Sys.Date(), '%d-%m-%Y')`"
+output:
+  html_document:
+#    toc: true
+ #   toc_depth: 2
+  pdf_document: default
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 7, fig.height = 4.6)
+set.seed(123)
+```
+
+# Instruções
+
+* **Duração:** 2 horas.
+* **Entregar:** este `.Rmd` com **código** e **respostas** (texto + figuras).
+* **Dados usados:** `gapminder`, `babynames`, `ggplot2::diamonds`, `ISLR2::Hitters`.
+
+```{r pacotes}
+# Instalar se necessário
+req <- c("tidyverse","broom","gapminder","babynames","glmnet","ISLR2","GGally","scales","janitor")
+new <- setdiff(req, rownames(installed.packages()))
+if(length(new)) install.packages(new)
+
+library(tidyverse)
+library(broom)
+library(gapminder)
+library(babynames)
+library(glmnet)
+library(ISLR2)
+library(GGally)
+library(scales)
+library(janitor)
+```
+
+---
+
+# Parte A — EDA & Visualização
+
+## A1. Gapminder: padrões globais
+
+**Dados:** `gapminder::gapminder`.
+
+```{r A1-data}
+gp <- gapminder::gapminder |> janitor::clean_names()
+glimpse(gp)
+names(gp)
+```
+
+**a)** Crie um **gráfico de dispersão** de `life_exp` vs `gdp_per_cap` para todos os anos, com:
+
+* eixo do PIB em **escala log10** (`scale_x_log10()`),
+* **transparência** (ex.: `alpha = 0.3`) para reduzir sobreposição,
+* **facet por continente**,
+* **linha de tendência** simples (`geom_smooth(se = FALSE)`).
+  *Explique tendências gerais e diferenças por continente.*
+
+```{r A1a}
+
+ggplot(gp, aes(x = gdp_percap, y = life_exp)) +
+  geom_point(color = "black", alpha = 0.3) +
+  geom_smooth(se = FALSE) +
+  scale_x_log10()+
+  facet_wrap(~continent)
+"
+Na Europa e na Oceania conseguimos ver que nao ha grandes desvios, a esperança media de vida
+esta relacionada com o gdp maior.
+Já na Africa America e na Asia podemos ver desvios
+"
+```
+
+**b)** Escolha **3 países** de **continentes distintos** e faça um **gráfico de linhas ao longo do tempo** para `life_exp` (com pontos nos anos observados).
+*Comente a evolução comparada.*
+
+```{r A1b}
+View(gapminder)
+paises <- gapminder |>
+  filter(country %in% c("Portugal", "Canada", "Guatemala"))
+summary(paises)
+ggplot(paises, aes(x = year, y = lifeExp, color = country))+
+  geom_line()
+"
+Podemos ver que ao longo dos anos a esperança media de vida aumentou,
+estando este aumento tambem relacionado com o gdp, nota-se um alcance superior
+de esperança media de vida nos paises onde tem um gdp maior
+"
+```
+
+**c)** Para o ano **2007**, compare as distribuições de `life_exp` por continente usando **boxplot**.
+*Comente níveis típicos e dispersão por continente.*
+
+```{r A1c}
+ano2007 <- gapminder |>
+  filter(year == 2007)
+
+ggplot(ano2007, aes(x = continent, y = lifeExp))+
+  geom_boxplot(fill = "black")
+
+"
+Na africa esta mais ou menos centralizado 
+Na america temos assimetria negativa 
+Na asia assimetria positiva com  outliers
+na europa assimetria positiva com outliers
+e na oceania esta bom
+"
+```
+
+
+---
+
+## A2. Babynames: diversidade de nomes
+
+**Dados:** `babynames::babynames`.
+
+```{r A2-data}
+bb <- babynames::babynames |> janitor::clean_names()
+glimpse(bb)
+
+```
+
+**a)** Escolha **5 nomes** (de ambos os sexos) e faça **séries temporais** (1900–2015) de `prop` por `year`, com **facets por nome** e **linhas suaves**.
+*Descreva um padrão.*
+
+```{r A2a}
+names(bb)
+nomes <- bb |>
+  filter(name %in% c("Mary","Anna","Emma","Elizabeth")) |>
+  filter(1900 <= year & year <= 2015)
+ggplot(nomes, aes(x = year, y = prop))+
+  geom_line()+
+  geom_smooth(method = "lm", se = FALSE, color = "black")+
+  facet_wrap(~name)
+"
+O nome Mary ao longo dos anos foi cada vez menos usado
+Anna e Elizabeth esteve estável ao longo dos anos
+Emma voltou a ser mais utilizado
+"
+```
+
+**b)** Para um sexo à escolha (`sex` = "F" ou "M"), construa um **diagrama de barras** para os 5 **nomes** mais comuns.
+*Indique um padrão temporal.*
+
+```{r A2b}
+
+femeas <- bb |>
+  filter(sex == "F") |>
+  group_by(name) |>
+  summarise(
+    media = mean(n, na.rm = TRUE)
+  ) |>
+  arrange(desc(media)) |>
+  head(5)
+  
+  
+bb |>
+  filter(sex == "F", name %in% femeas$name) |>
+  ggplot(aes(x = year, y = prop, color = name)) +
+  geom_bar(stat = "identity", fill = "gray", color = "black")
+
+“Os nomes femininos mais comuns foram bastante populares no início do século XX, apresentando uma tendência de declínio ao longo do tempo, com pequenas recuperações em alguns períodos, e queda acentuada nos anos mais recentes.”
+
+```
+
+
+---
+
+# Parte B — Regressão Linear
+
+## B1. Diamonds: preço e características 
+
+**Dados:** `ggplot2::diamonds`. Objetivo: prever `log(price)`.
+
+```{r B1-data}
+data("diamonds", package = "ggplot2")
+dm <- diamonds |> janitor::clean_names() |> mutate(log_price = log(price))
+
+```
+
+**a)** Ajuste o modelo base:
+$$
+\log(\text{price}) \sim \text{carat} + \text{cut} + \text{color} + \text{clarity}.
+$$
+*Reporte **RMSE** e **R²** em treino e teste.*
+
+```{r B1a}
+# Ajustar o modelo
+modelo <- lm(log(price) ~ carat + cut + color + clarity, data = dm)
+
+# Separar treino e teste (usando o dataset dm)
+set.seed(1)
+idx <- sample(seq_len(nrow(dm)), size = round(0.7 * nrow(dm)))
+train <- dm[idx, ]
+test  <- dm[-idx, ]
+
+# Ajustar o modelo nos dados de treino
+modelo_treino <- lm(log(price) ~ carat + cut + color + clarity, data = train)
+
+# Previsões
+pred_treino <- predict(modelo_treino, newdata = train)
+pred_teste  <- predict(modelo_treino, newdata = test)
+
+# Funções de avaliação
+rmse <- function(obs, pred) sqrt(mean((obs - pred)^2))
+r2   <- function(obs, pred) 1 - sum((obs - pred)^2) / sum((obs - mean(obs))^2)
+
+# Resultados
+res <- tibble(
+  dataset = c("Treino", "Teste"),
+  RMSE = c(rmse(train$log_price, pred_treino),
+           rmse(test$log_price, pred_teste)),
+  R2 = c(r2(train$log_price, pred_treino),
+         r2(test$log_price, pred_teste))
+)
+
+res
+
+
+```
+
+**b)** Adicione a **interação** `carat:clarity`.
+*Compare **AIC** e **R² ajustado** com o modelo base e discuta o **trade-off complexidade vs ajuste**.*
+
+```{r B1b}
+# Modelo base
+modelo_base <- lm(log(price) ~ carat + cut + color + clarity, data = dm)
+
+# Modelo com interação
+modelo_interacao <- lm(log(price) ~ carat * clarity + cut + color, data = dm)
+# (equivalente a carat + clarity + carat:clarity + cut + color)
+
+# Comparação dos modelos
+summary(modelo_base)$adj.r.squared
+summary(modelo_interacao)$adj.r.squared
+
+AIC(modelo_base)
+AIC(modelo_interacao)
+```
+
+**c)** Faça **diagnóstico visual** (resíduos vs ajustados, QQ-plot, *scale-location*).
+*Identifique 2 problemas potenciais.*
+
+```{r B1c}
+# Diagnóstico visual padrão
+par(mfrow = c(2, 2))  # Mostra 4 gráficos de diagnóstico
+plot(modelo_interacao)
+par(mfrow = c(1, 1))
+```
+
+**d)** Produza um **efeito parcial**: curvas previstas de `log(price)` vs `carat` para **3 níveis de `clarity`** (fixe `cut` e `color` em categorias comuns). Inclua **IC 95%** com `geom_ribbon`.
+*Comente.*
+
+```{r B1d}
+novo <- expand.grid(
+  carat = seq(min(dm$carat), max(dm$carat), length.out = 100),
+  clarity = c("I1", "SI1", "VS1"),   # 3 níveis a comparar
+  cut = "Ideal",                     # valor comum
+  color = "G"                        # valor comum
+)
+
+# Predições com intervalo de confiança
+pred <- predict(modelo_interacao, newdata = novo, interval = "confidence", level = 0.95)
+novo <- cbind(novo, as.data.frame(pred))
+
+# Gráfico
+ggplot(novo, aes(x = carat, y = fit, color = clarity, fill = clarity)) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, color = NA) 
+```
+
+**e)** **Interprete** dois coeficientes do melhor modelo (um coeficiente de uma variável contínua e um coeficiente de uma variável categórica), indicando unidades/escala e implicação no **preço**.
+*Resposta textual abaixo.*
+
+**Interpretação (B1e):**
+*Escreva aqui.*
+
+---
+
+# Parte C — Regularização: Ridge e Lasso
+
+## C1. Hitters (ISLR2): salários no basebol
+
+**Dados:** `ISLR2::Hitters`. Resposta: `log(Salary)`. Remova linhas com `NA` em `Salary`.
+
+```{r C1-data}
+ht <- as_tibble(ISLR2::Hitters) |> janitor::clean_names() |> drop_na(salary) |>
+  mutate(log_salary = log(salary))
+
+```
+
+**a)** Ajuste **Ridge** com `cv.glmnet(..., nfolds = 10)`.
+*Indique o `lambda.min` e o **RMSE de teste** (na escala de `log_salary`).*
+
+```{r C1a}
+set.seed(1)
+idx <- sample(seq_len(nrow(ht)), size = round(0.7 * nrow(ht)))
+train <- ht[idx, ]
+test  <- ht[-idx, ]
+
+X_train <- model.matrix(log_salary ~ . - salary, data = train)[, -1]
+y_train <- train$log_salary
+
+X_test  <- model.matrix(log_salary ~ . - salary, data = test)[, -1]
+y_test  <- test$log_salary
+
+cv_ridge <- cv.glmnet(X_train, y_train, alpha = 0, nfolds = 10)
+
+cv_ridge$lambda.min
+
+pred_ridge <- predict(cv_ridge, newx = X_test, s = "lambda.min")
+
+rmse <- function(obs, pred) sqrt(mean((obs - pred)^2))
+
+rmse_teste <- rmse(y_test, pred_ridge)
+
+rmse_teste
+
+```
+
+**b)** Ajuste **Lasso** com *cross-validation*.
+*Indique `lambda.min`, e **RMSE de teste** para ambos.*
+
+```{r C1b}
+cv_lasso <- cv.glmnet(X_train,y_train, alpha=1 , nfolds = 10)
+cv_lasso$lambda.min
+pred_lasso <- predict(cv_lasso, newx = X_test, s = "lambda.min")
+rmse <- function(obs, pred) sqrt(mean((obs - pred)^2))
+rmse_lasso <- rmse(y_test, pred_lasso)
+rmse_lasso
+
+cv_ridge <- cv.glmnet(X_train, y_train, alpha = 0, nfolds = 10)
+cv_ridge$lambda.min
+
+pred_ridge <- predict(cv_ridge, newx = X_test, s = "lambda.min")
+rmse_ridge <- rmse(y_test, pred_ridge)
+rmse_ridge
+
+```
+
+**c)** Liste as **variáveis selecionadas** com o Lasso (com base no lambda.min).
+
+```{r C1c}
+coef_lasso <- coef(cv_lasso, s = "lambda.min")
+coef_df <- as.data.frame(as.matrix(coef_lasso))
+coef_df <- tibble::rownames_to_column(coef_df, "variavel")
+names(coef_df)[2] <- "coeficiente"
+
+# Mostrar apenas variáveis com coeficiente diferente de 0
+coef_df <- coef_df |> dplyr::filter(coeficiente != 0)
+print(coef_df)
+
+```
+
+**d)** Compare **OLS vs Ridge vs Lasso** (use o mesmo *split*).
+*Discuta **viés–variância**, **colinearidade** e **parcimónia**.
+
+```{r C1d}
+X <- model.matrix(log_salary ~ . - salary, data = ht)[, -1]
+y <- ht$log_salary
+set.seed(1)
+idx <- sample(seq_len(nrow(X)), size = round(0.7 * nrow(X)))
+X_train <- X[idx, ];  y_train <- y[idx]
+X_test  <- X[-idx, ]; y_test  <- y[-idx]
+ols <- lm(log_salary ~ . - salary, data = ht[idx, ])
+cv_ridge <- cv.glmnet(X_train, y_train, alpha = 0, nfolds = 10)
+cv_lasso <- cv.glmnet(X_train, y_train, alpha = 1, nfolds = 10)
+pred_ols   <- predict(ols, newdata = ht[-idx, ])
+pred_ridge <- predict(cv_ridge, newx = X_test, s = "lambda.min")
+pred_lasso <- predict(cv_lasso, newx = X_test, s = "lambda.min")
+rmse <- function(obs, pred) sqrt(mean((obs - pred)^2))
+r2   <- function(obs, pred) 1 - sum((obs - pred)^2) / sum((obs - mean(obs))^2)
+resultados <- tibble(
+  modelo = c("OLS", "Ridge", "Lasso"),
+  RMSE = c(
+    rmse(y_test, pred_ols),
+    rmse(y_test, pred_ridge[,1]),
+    rmse(y_test, pred_lasso[,1])
+  ),
+  R2 = c(
+    r2(y_test, pred_ols),
+    r2(y_test, pred_ridge[,1]),
+    r2(y_test, pred_lasso[,1])
+  )
+)
+
+print(resultados)
+"
+O OLS tem o melhor desempenho em termos de erro e explicação,
+mas Ridge e Lasso oferecem modelos mais robustos e simples.
+O Ridge é preferível se houver colinearidade,
+e o Lasso é vantajoso quando se quer selecionar variáveis
+e obter um modelo mais parcimonioso.
+"
+```
+
