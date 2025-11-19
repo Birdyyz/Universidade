@@ -17,7 +17,5 @@ t_ignore = " \n\t"
 
 lexer = lex.lex()
 
-lexer.input("! 10")
-
 for token in lexer:
     print(token)

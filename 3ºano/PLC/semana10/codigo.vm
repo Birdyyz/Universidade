@@ -1,0 +1,39 @@
+NA VM
+
+READ
+ATOI (converte string para inteiro)
+READ
+ATOI 
+ADD
+WRITEI
+
+
+a
+b  -> a^b
+
+READ
+ATOI
+READ
+ATOI
+
+PUSHI 1
+
+loop:
+    PUSHG 1
+
+    JZ end 
+
+    PUSHG 0 
+    MUL
+
+    PUSHG 1
+    PUSHI 1 
+    SUB 
+    STOREG 1
+
+    JUMP loop
+
+end:
+    PUSHS "Result:"
+    WRITES 
+    WRITEI
