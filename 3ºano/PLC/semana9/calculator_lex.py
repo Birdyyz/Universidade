@@ -1,0 +1,23 @@
+import ply.lex as lex 
+
+literals = ("+", "/","*","-","(",")", "!", "?","=")
+tokens = ("NUM","VAR")
+
+t_VAR = r"[a-zA-Z]+"
+def t_NUM(t):
+    r"\d(+\.\d+)?"
+    t.value = float(t.value)
+    return t 
+
+def t_error(t):
+    print("Caracter inválido",t)
+    lexer.skip(1)
+
+t_ignore = " \n\t"
+
+lexer = lex.lex()
+
+lexer.input("! 10")
+
+for token in lexer:
+    print(token)
