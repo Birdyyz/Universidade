@@ -35,6 +35,43 @@ set.seed(123)
 
 ```{r E1}
 library(ISLR2)
+library(ggplot2)
+dat <- NCI60$data
+# ver o numero de variaveis genes, neste caso 6830
+ncol(dat)
+dim(dat)
+
+dates <- scale(data)
+covariancias <- cov(data)
+
+correlacao <- prcomp(dates,center=TRUE, scale = TRUE)
+sum0 <- summary(correlacao)
+valprop <- ((sum0$dev)^2)
+pe <- ((sum0importance))
+cumulative <- pe[3,]
+df_pe <- data.frame(
+  PC = 1: length(pe[3,])
+  cumprop = pe[3,]
+)
+screeplot(correlacao, npcs = min(64,6830))
+ggplot(df_pes, aes(x = PC, y = cumprop)) +
+  geom_point()
+
+biplot(correlacao)
+ggplot(correlacao$x , aes(x = PC1, y = PC2, color = NI60$labs))+
+  geom_point() +
+  labs(
+    x = "PC1 (score)",
+    y = "PC2 (score)",
+    title = "Scores: PC1 vs PC2"
+  )
+
+load_pc1 <- correlacao$rotation[,1]
+genes_pc1 <- names(sort(abs(load_pc1), decreasing = TRUE))[1:25]
+load_pc2 <- correlacao$roation[,2]
+genes_pc2 <- names(sort(abs(load_pc2), decreasing = TRUE))[1:25]
+genes_pc1
+genes_pc2
 
 ```
 
