@@ -2,24 +2,9 @@ import ply.yacc as yacc
 from calc_lex import lexer, tokens, literals
 
 
-def p_gramatica(p):
-    """
-    PAR : '(' INST ')' 
-    INST : READ VAR 
-          | IF '(' '>' VAR VAR ')'
-          | WRITE VAR 
-          | WHILE '(' '>' VAR NUM ')'
-
-        
-    """
-
-
-
-"""
-STOR
 def p_program(t):
     r"Program : Statements"
-    t[0] = "\n".join("pushi 0 for i in range 26" + t[1])
+    t[0] = "\n".join(len(parser.vars)*"pushi 0" + t[1])
 
 def p_stmts_0(t):
     r"Statements : Statements Statement"
@@ -32,32 +17,42 @@ def p_stmts_1(t):
 
 def p_stmt_read(t):
     r"Statements : '(' READ VAR ')'"
-    idx = ord(t[3]) - ord("a")
-    t[0] = [f"pushs "var {t[3]}":" , "writes", "read","atoi", f"storeg(idx)"]
+    if t[3] not in parser.vars: 
+        parser.vars.append(t[3])
+    idx = parser.vars.index(t[3])
+    t[0] = [f"pushs "var {t[3]}":" , "writes", "read","atoi", f"storeg{idx}"]
 
 def p_stmt_write(t):
     r"Statement : '(' WRITE VAR ')'"
-    idx = ord(t[3]) - ord("a")
+    parser.vars.append(t[3])
+    idx = parser.vars.index(t[3])
     t[0] = [f"pushs "var {t[3]}":" , "writes" , f"pushg(idx)","writei"]
 
 def p_stmt_assign(t):
-    r"Statement : '(' '=' VAR Exp ')'
-    idx = ord(t[3]) - ord("a")
-    t[0] = t[4] + [f"storeg (idx)"]
+    r"Statement : '(' '=' VAR Exp ')'"
+    if t[3] not in parser.vars: 
+        parser.vars.append(t[3])
+    idx = parser.vars.index(t[3])
+    t[0] = t[4] + [f"storeg {idx}"]
 
 
 def p_stmt_if(t):
     r"Statement : '(' IF Cond Block Block ')'"
-
-def_stmt_while(t):
+    t[0] = t[3] + [f"jz else{parser.label}"] + t[4] + [f"jump end {parser.label}", f"else{parser.label}:"] + t[5] + [f"end{parser.label}"]
+    parser.label += 1
+    
+def stmt_while(t):
     r"Statemenet : '(' WHILE Cond Block ')'"
-
+    t[0] = [f"while{parser.label}:"] + t[3]+[f"jz end{parser.label}"] +t[4] + [f"jump while{parser.label}", f""]
+    parser.label += 1
 
 def p_block_0(t):
-    r"Block : Statement
+    r"Block : Statement"
+    t[0] = t[1]
 
 def p_block_1(t):
     r"Block : '(' Statement ')'"
+    t[0] = t[2]
 
 def p_exp_sum(t):
     r"Exp : '(' '+' Exp Term ')'"
@@ -73,9 +68,49 @@ def p_factor_fact(t):
 def p_factor_num(t):
     r"Factor : NUM"
     t[0] = t[1]
-r"Factor : NUM"
+
 
 def p_factor_var(t):
+    r"Factor: VAR"
+    idx = parser.vars.index(t[1])
 
 
+
+
+
+
+
+parser = yac.yacc()
+ex2= """
+(read a)
+(= f 1)
+while(> a 1)
+    (
+        (= f (* f a)
+        ( = a (- a 1)
+    )
+)
+(write f)
 """
+
+ex3 ="""
+(read n)
+(= nx 1)
+(= ny 1)
+(while( > n 0)
+    (
+        ( = aux nx)
+        ( = nx(+ nx ny))
+        (= ny aux)
+        (= n (- n 1))
+    )
+)
+(write nx)
+"""
+
+parser = init()
+result = parser.parser(ex2)
+if parser.error:
+    print("Error!",parser.errror)
+else:
+    print(result)

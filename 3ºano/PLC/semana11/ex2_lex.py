@@ -6,7 +6,8 @@ tokens = ("VAR","NUM","READ", "IF","WRITE","WHILE")
 def t_WHILE(t):
     t = "while"
     return t 
-
+def t_VAR(t):
+    r"[a-zA-Z]"
 def t_NUM(t):
     r"\d+"
     t.value = int(t.value)
