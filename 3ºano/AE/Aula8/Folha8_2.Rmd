@@ -32,7 +32,7 @@ Pretende-se ajustar um **modelo de regressão logística** para estudar a associ
 
 1. Leia o ficheiro `saude_fumadores.csv` para R e faça uma breve inspeção dos dados.
 
-```{r exercicio1-importacao}
+```{r}
 head(saude_fumadores)
 dim(saude_fumadores)
 names(saude_fumadores)
@@ -47,7 +47,7 @@ summary(saude_fumadores)
 
 Comente **pelo menos duas observações** interessantes (por exemplo, se a doença parece mais frequente em fumadores, se os doentes são em média mais velhos, etc.).
 
-```{r exercicio1-exploracao}
+```{r}
 table(saude_fumadores$doenca)
 n <- 300
 table(saude_fumadores$doenca)/n
@@ -71,7 +71,7 @@ $$
 
 isto é, um modelo com **apenas uma covariável** (`fumador`).
 
-```{r exercicio1-logistico-simples}
+```{r}
 modelo <- glm(doenca~fumador, data = saude_fumadores,
           family = binomial(link = "logit"))
 
@@ -95,7 +95,7 @@ influência -> como o sinal é positivo, um individuo q é fumador tem maior pro
 5. Calcule a **odds ratio** associada à variável `fumador` (fumadores vs. não fumadores) usando o coeficiente do modelo.
    Interprete em linguagem simples.
 
-```{r exercicio1-oddsratio}
+```{r}
 odds_ratio = exp(0.8848)
 odds_ratio
 ```
@@ -108,7 +108,7 @@ $$
 \texttt{doenca} \sim \texttt{fumador} + \texttt{idade}
 $$
 
-```{r exercicio1-logistico-multiplo}
+```{r}
 modeloc <- glm(doenca~fumador+idade,data = saude_fumadores,
             family= binomial(link = "logit"))
 summary(modeloc)
@@ -138,7 +138,7 @@ muito significativa (3 estrelas) e sinal positivo
    * Perfil C: não fumador, 60 anos;
    * Perfil D: fumador, 60 anos.
 
-```{r exercicio1-probabilidades}
+```{r}
 predict(modeloc, newdata = data.frame(fumador = 0, idade=30),type="response")
 predict(modeloc, newdata = data.frame(fumador = 1, idade=30),type="response")
 predict(modeloc, newdata = data.frame(fumador = 0, idade=60),type="response")
@@ -157,7 +157,7 @@ Comente os resultados: em que medida a idade e o tabagismo contribuem para aumen
 
 10. Construa a **matriz de confusão** e calcule a **proporção de classificações corretas** (acerto global). Comente se considera este valor razoável, tendo em conta o contexto.
 
-```{r exercicio1-avaliacao}
+```{r}
 saude_fumadores$prob_manual <- predict(modeloc, type = "response")
 saude_fumadores
 
@@ -201,10 +201,27 @@ Pretende-se ajustar modelos de regressão logística para estudar os fatores ass
    * um ou dois gráficos sugeridos por si (por exemplo, boxplot de `horas_estudo` por `aprovado`).
 
 ```{r exercicio2-importacao}
+dados <- alunos_aprovacao
+summary(dados)
+# tabela de frequencias
+table(dados$aprovado)
+table(dados$trabalhador)
+table(dados$aprovado, dados$trabalhador)
 
+# estatisticas resumo
+summary(dados$horas_estudo,dados$frequencia_aulas,dados$media_secundario)
+
+library(ggplot2)
+ggplot(dados, aes(x = aprovado, y = horas_estudo)) +
+  geom_boxplot(fill = "gray")
+
+ggplot(dados, aes(x = aprovado, y = horas_estudo)) +
+  geom_line()
 ```
 
 Comente **duas observações** sobre o comportamento dos alunos (por exemplo, se os aprovados tendem a estudar mais, se há grandes diferenças na frequência às aulas, etc.).
+
+Como podemos ver por ambos os gráficos, os aprovados tendem a estudar mais do que os não aprovados
 
 ## 2.2 Modelo logístico com múltiplas covariáveis
 
@@ -215,15 +232,25 @@ $$
 $$
 
 ```{r exercicio2-logistico1}
-
+modeloap <- glm(aprovado~horas_estudo + frequencia_aulas + trabalhador, data = dados,family = binomial(link = "logit"))
+summary(modeloap)
 ```
 
 3. Interprete:
 
    a) Os sinais dos coeficientes de `horas_estudo` e `frequencia_aulas`.
+   horas_estudo -> 0.035405
+   por cada hora a mais de estudo aumenta 0.035405 unidades de aprovado
+   frequencia_aulas -> 0.002489
+   insignificante, nao altera muito aos aprovados
+   
    b) Os respetivos p-valores.
-
+  horas_estudo -> Significativo (p < 0.01). Há evidência de que horas de estudo influenciam aprovado.
+  frequencia_aulas -> Não significativo. Não há evidência de efeito.
+  
    Com base nisso, discuta se estes fatores parecem estar associados à probabilidade de aprovação.
+
+O unico fator que esta relacionado à provabilidade de aprovação sao as horas_estudo 
 
 4. Calcule e interprete a **odds ratio** para a variável `trabalhador`:
 
@@ -231,10 +258,19 @@ $$
      mantendo constantes as restantes variáveis.
 
 ```{r exercicio2-oddsratio-trabalhador}
-
+exp(coef(modeloap))["trabalhador"]
 ```
 
 Comente se trabalhar em part-time parece estar associado a maior ou menor probabilidade de aprovação.
+OR = 0.772 (aproximadamente)
+
+Isso significa que, mantendo constantes horas de estudo e frequência de aulas, ser trabalhador está associado a odds de aprovação cerca de 23% menores do que não ser trabalhador.
+
+Cálculo: 
+1−0.772 = 0.223 ≈ 23%
+1−0.772= 0.228≈23% de redução nas odds.
+
+Trabalhadores têm menor probabilidade de aprovação em relação a não trabalhadores, controlando as outras variáveis.
 
 ## 2.3 Inclusão da média do secundário
 
@@ -245,13 +281,27 @@ $$
 $$
 
 ```{r exercicio2-logistico2}
-
+modelomc <- glm(aprovado ~ horas_estudo + frequencia_aulas + trabalhador + media_secundario , data = dados,family = binomial(link = "logit"))
+summary(modelomc)
 ```
 
 6. Compare `mod_alunos1` e `mod_alunos2`:
 
+Neste modelo temos variáveis mais significativas relacionado à aprovação
+
    a) Comente se a inclusão de `media_secundario` altera o coeficiente (e/ou significância) de alguma das outras variáveis.
+   
+   Alterou o coeficiente de horas_estudo e esta ficou ainda mais significativa que antes
+   A varivel de frequencia de aulas mudou mas continua a nao ser explicativa
+   
+   
+   A inclusão de media_secundario alterou apenas ligeiramente o coeficiente de horas_estudo, tornando-o ainda mais significativo. As restantes variáveis (frequencia_aulas e trabalhador) mantiveram-se não significativas, pelo que a principal alteração foi a introdução da própria variável media_secundario como um preditor significativo.
+   
    b) Discuta o que significa, neste contexto, interpretar o efeito de `horas_estudo` **ajustado** à média do secundário.
+   
+   
+Interpretar o efeito de horas_estudo ajustado à média do secundário significa avaliar o impacto das horas de estudo na aprovação, mantendo constante a média do secundário. Assim, o modelo compara alunos com igual desempenho prévio, isolando o efeito específico das horas de estudo. Como o coeficiente se mantém significativo, concluímos que estudar mais aumenta a probabilidade de aprovação independentemente da média obtida no secundário.
+
 
 ## 2.4 Probabilidades previstas para perfis de alunos
 
@@ -262,7 +312,9 @@ $$
    * Perfil 3: `horas_estudo = 5`, `frequencia_aulas = 80`, `trabalhador = 0`, `media_secundario = 17`.
 
 ```{r exercicio2-probabilidades}
-
+predict(modelomc, newdata = data.frame(horas_estudo  = 2, frequencia_aulas =60, trabalhador  = 1, media_secundario = 12),type="response")
+predict(modelomc, newdata = data.frame(horas_estudo  = 8, frequencia_aulas =90, trabalhador  = 0, media_secundario = 12),type="response")
+predict(modelomc, newdata = data.frame(horas_estudo  = 5, frequencia_aulas =80, trabalhador  = 0, media_secundario = 17),type="response")
 ```
 
 Comente os resultados, discutindo:
@@ -271,17 +323,44 @@ Comente os resultados, discutindo:
 * o papel da média do secundário;
 * se faz sentido que alunos com melhor média no secundário tenham, em geral, maior probabilidade de aprovação.
 
+  Podemos ver o ultimo aluno tem a maior taxa de probabilidade de aprovação comparado aos outros dois. O perfil 3 tem uma nota do secundario alta, nao é aluno trabalhador, e mesmo com menos 3 horas de estudo comparado ao perfil 2 a probabildade de aprovacao aumenta 13%.
+  O perfil 1, é o que tem menos chances de aprovação, estuda pouco, dos 3 é o que menos frequenta as aulas, é trabalhador e a media do secundario e de 12
+  O perfil 2, estuda mais 6 horas que o primeiro, frequenta mais aulas q o dois e que o tres e tambem nao e trabalhador, mesmo com a mesma media do secundario que o primeiro a sua taxa é de 25% enquanto que o do primeiro é de 2%
 ## 2.5 Avaliação e pensamento crítico
 
 8. Obtenha as probabilidades previstas de aprovação para todos os alunos e construa uma matriz de confusão usando o ponto de corte 0.5. Calcule a proporção de classificações corretas.
 
 ```{r exercicio2-avaliacao}
+dados$prob_aprovacao <- predict(modelomc, type = "response")
+dados$aprov_pred <- ifelse(dados$prob_aprovacao >= 0.5, 1, 0)
+cm <- table(Real = dados$aprovado, Predito = dados$aprov_pred)
+cm
+
+TP <- cm["1","1"]
+FN <- cm["1","0"]
+FP <- cm["0","1"]
+TN <- cm["0","0"]
+
+sensibilidade <- TP / (TP + FN)
+
+especificidade <- TN / (TN + FP)
+
+sensibilidade
+especificidade
 
 ```
 
 9. Discuta, em texto, as seguintes questões:
 
    a) A taxa de acerto parece satisfatória? Porquê?
+   
+   O modelo acerta muito bem os reprovados, mas falha completamente nos aprovados.
+   
    b) O modelo está a errar mais frequentemente nos aprovados ou nos reprovados? Que implicações isso poderia ter em termos de decisão (por exemplo, identificar alunos em risco)?
+   
+   O modelo é bom em identificar quem está em risco (os reprovados) → isso é positivo se o objetivo é detetar alunos que podem falhar.
+   
    c) Sugira **uma alteração possível** ao modelo ou à forma como é avaliado (por exemplo, considerar outro ponto de corte, incluir uma interação, recolher uma nova variável) e justifique por que poderia ser útil.
-
+   
+   
+Uma alteração possível é considerar um ponto de corte menor do que 0.5 para a classificação das probabilidades previstas. Isto aumentaria a sensibilidade do modelo, permitindo identificar melhor os alunos que serão aprovados, sem comprometer significativamente a identificação dos alunos em risco. Alternativamente, poderíamos incluir interações ou recolher variáveis adicionais que captem fatores importantes para a aprovação, como motivação ou participação em atividades extracurriculares.

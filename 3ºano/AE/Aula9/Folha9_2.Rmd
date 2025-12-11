@@ -1,0 +1,145 @@
+---
+title: "Exercício – Testes de Hipóteses para Comparação entre Dois Grupos"
+author: ""
+output: html_document
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+set.seed(123)
+```
+
+
+# Exercício – Efeito de um medicamento
+
+Um estudo clínico simples avaliou o efeito de um **novo medicamento** na redução da pressão arterial sistólica (em mmHg).
+
+Foram selecionados 20 doentes com hipertensão ligeira, que foram aleatoriamente divididos em dois grupos:
+
+* **Grupo Controlo**: recebeu um placebo.
+* **Grupo Tratamento**: recebeu o novo medicamento.
+
+Após 8 semanas, mediu-se a **redução na pressão arterial** (diferença entre a medição inicial e final). Valores positivos indicam diminuição da pressão arterial.
+
+Os dados (em mmHg) são os seguintes:
+
+```{r}
+redução_controlo   <- c(2, 0, 3, -1, 1, 2, 0, 1, -2, 2)
+redução_tratamento <- c(5, 7, 4, 6, 3, 8, 5, 6, 4, 7)
+
+redução_controlo
+redução_tratamento
+```
+
+Pretende-se testar se o **novo medicamento é mais eficaz** na redução da pressão arterial do que o placebo.
+
+---
+
+## 1. Exploração inicial dos dados
+
+1. (a) Calcule, para cada grupo, a média, o desvio padrão e o tamanho amostral.
+
+```{r}
+mean(redução_controlo)
+mean(redução_tratamento)
+
+sd(redução_controlo)
+sd(redução_tratamento)
+
+length(redução_controlo)
+length(redução_tratamento)
+```
+2. (b) Faça um **boxplot** comparando os dois grupos e comente, de forma exploratória, se o grupo de tratamento parece ter maior redução da pressão arterial.
+
+```{r}
+boxplot(redução_controlo, redução_tratamento,
+        names = c("Controlo", "Tratamento"))
+```
+Eixo Y representa a redução > valor y > reducao 
+
+Podemos ver pelo boxplot que o grupo de tratamento teve uma maior redução na pressão arterial, com valores entre 4 e 8, enquanto que o controlo nao reduziu muito tendo valores entre -2 e 2
+
+
+3. (c) Com base apenas na exploração gráfica e nas estatísticas descritivas, formule uma **hipótese informal** sobre qual dos grupos tem, em média, maior redução da pressão arterial.
+
+Em média, o grupo Tratamento parece ter uma redução da pressão arterial maior do que o grupo Controlo
+---
+
+## 2. Formulação das hipóteses estatísticas
+
+1. (a) Formule as hipóteses estatísticas para comparar as **médias populacionais de redução** nos dois grupos:
+
+   * Escreva claramente $H_0$ e $H_1$ em termos de $\mu_C$ (controlo) e $\mu_T$ (tratamento).
+$H_0$ -> o medicamento não é eficaz
+$u_T$ <= $u_C$
+$H_1$ -> o medicamento é eficaz
+$u_T$ > $u_C$
+Rejeitamos $H_0$ a favor da alternativa $H_1$
+
+2. (b) Indique se o teste é **unilateral** ou **bilateral** e justifique a sua escolha com base na pergunta de investigação (“o medicamento é mais eficaz?”).
+
+O teste é unilateral porque só precisamos de saber se $u_T$ é maior
+---
+
+## 3. Condições para o teste t
+
+1. (a) Explique quais são as **principais suposições** do teste t para comparação de duas médias em amostras independentes.
+
+
+Independência: As observações dentro de cada grupo e entre grupos são independentes (não há pares ou medidas repetidas).
+
+Normalidade: As distribuições populacionais de cada grupo são aproximadamente normais.
+
+Homogeneidade de variâncias: As variâncias populacionais dos dois grupos são iguais (suposição do teste t clássico).
+
+Se esta condição não for plausível, pode-se usar a versão de Welch do teste t, que não assume variâncias iguais.
+
+
+
+2. (b) Utilize o R para construir gráficos simples que ajudem a avaliar a plausibilidade da normalidade aproximada em cada grupo.
+
+```{r}
+par(mfrow=c(1,2))
+hist(redução_controlo, main="Grupo Controlo")
+hist(redução_tratamento, main="Grupo Tratamento")
+```
+3. (c) Comente, de forma qualitativa, se considera razoável aplicar o teste t a estes dados.
+
+Não ha muita dispersão de dados então é razoável aplicar o teste t 
+---
+
+## 4. Teste t para comparação de médias
+
+1. (a) Utilizando o R, aplique um **teste t para amostras independentes** para comparar as médias dos dois grupos.
+
+```{r}
+t.test(redução_tratamento, redução_controlo,
+       alternative = "greater",  
+       var.equal = FALSE)
+```
+2. (b) Identifique, na saída do R:
+
+   * o valor da estatística de teste t;
+   * o $p$-valor.
+
+t = 6.7143
+p-value = 1.353e-06
+
+3. (c) A um nível de significância $\alpha = 0.05$, qual é a sua **decisão** relativamente a $H_0$?
+
+   * Indique se **rejeita** ou **não rejeita** $H_0$ e justifique com base no $p$-valor.
+
+alpha <- 0.05
+p - value <- 1.353e-06
+alpha > p-value
+temos que rejeitar $H_0$ pois o p-value é menor que alpha
+
+4. (d) Interprete o resultado em **linguagem simples**, no contexto do estudo:
+
+   * O que é que os resultados sugerem sobre a eficácia do novo medicamento em comparação com o placebo?
+
+O resultado sugere que o medicamento é eficaz em comparação com o placebo
+---
