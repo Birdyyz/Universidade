@@ -66,6 +66,7 @@ round(as.matrix(summ)[,1:12], 3)
 ```{r E1-3}
 pc_nci <- prcomp(X, center = FALSE, scale. = FALSE)
 # Autovalores (variâncias dos scores)
+summary(pc_nci)
 ev  <- pc_nci$sdev^2
 pve <- ev / sum(ev)
 cpve <- cumsum(pve)
@@ -84,6 +85,9 @@ resumo_pve
 
 ```{r E1-3-plots, fig.height=4.2}
 # Scree
+screeplot(pc_nci, type = "lines", main = "NCI60 — Scree plot")
+
+
 qplot(y = ev, x = seq_along(ev), geom = c("line","point")) +
   labs(x = "Componente", y = "Autovalor", title = "NCI60 — Scree plot") +
   theme_minimal()
