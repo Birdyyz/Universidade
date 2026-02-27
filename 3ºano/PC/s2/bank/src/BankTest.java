@@ -1,4 +1,6 @@
 import java.util.Random;
+
+import Bank_exclude.Bank;
 public class BankTest {
 
     private static class Mover implements Runnable {
