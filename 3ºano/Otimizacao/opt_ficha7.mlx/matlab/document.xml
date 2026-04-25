@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>ex.1</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[% D=3; E={1}; I={}
+
+syms w1 w2 w3 y1 % y1 são os multiplicadores de lambda
+F = w1^2 - 2*w1 + w2^2 - w3^2 + 4*w3;
+c1 = w1 - w2 + 2*w3 - 2;
+
+% Definir a função Lagrangeana
+L = F - y1*c1;
+
+% Verificar se w* = (2.5,-1.5,-1) satisfaz a restrição de igualdade c1(w)=0
+% Se c1(w*)=0, então o ponto é admissível
+isAdmissible = subs(c1, [w1 w2 w3], [2.5 -1.5 -1])
+
+% O ponto é regular se o gradiente da restrição de igualdade for não nulo
+gradC1 = gradient(c1, [w1 w2 w3]) 
+% Como gradC1 = [1; -1; 2], a restrição é regular em qualquer ponto admissível
+
+% Verificar as condições de optimalidade
+% Calcular o gradiente de L em ordem a w
+gradL = gradient(L, [w1 w2 w3 y1])
+
+% Resolver gradL = 0 para verificar as condições de 1ªordem
+[ws1, ws2, ws3, ys1] = solve(gradL == 0, [w1 w2 w3 y1])
+% A solução obtida é w* = (2.5,-1.5,-1) e y1*=3
+
+% Portanto, o ponto w* e lambda1(y1) satisfazem as condições de KKT
+% (1ªordem de lagrange)
+
+% Calcular a hessiana de L em ordem a w
+HesL = hessian(L, [w1 w2 w3])
+
+% Z contém uma base do espaço tangente: C(w*) = { s in R^3 : gradC1(w*)' * s = 0 }
+% Isto corresponde às direções admissíveis que preservam a restrição à 1.ª ordem
+% calcular Z que é a base geradora C(w)
+Z = null(gradC1')
+
+% Verificar a condição de 2.ª ordem: se Z' * HesL * Z for definida positiva, 
+% então w* é mínimo local estrito.
+result = Z' * HesL * Z
+eig(result)
+
+% Como os autovalores são positivos, 
+% a forma quadrática é positiva em todas as direções tangentes não nulas.
+% Portanto, w* é um mínimo local estrito.
+]]></w:t></w:r></w:p></w:body></w:document>
